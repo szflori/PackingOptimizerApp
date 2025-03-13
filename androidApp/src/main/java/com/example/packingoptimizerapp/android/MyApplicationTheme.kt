@@ -15,24 +15,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+private val LightColorPalette = lightColorScheme(
+    primary = Color(0xFF4CAF50),
+    secondary = Color(0xFFC8E6C9),
+    background = Color.White,
+    surface = Color.White,
+    onPrimary = Color.White,
+    onSecondary = Color.Black,
+    onBackground = Color.Black,
+    onSurface = Color.Black,
+)
+
 @Composable
 fun MyApplicationTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val colors = if (darkTheme) {
-        darkColorScheme(
-            primary = Color(0xFF388E3C),
-            secondary = Color(0xFF4CAF50),
-            tertiary = Color(0xFFFFFFFF),
-        )
-    } else {
-        lightColorScheme(
-            primary = Color(0xFFC8E6C9),
-            secondary = Color(0xFF03DAC5),
-            tertiary = Color(0xFF3700B3)
-        )
-    }
     val typography = Typography(
         bodyMedium = TextStyle(
             fontFamily = FontFamily.Default,
@@ -48,7 +45,7 @@ fun MyApplicationTheme(
     )
 
     MaterialTheme(
-        colorScheme = colors,
+        colorScheme = LightColorPalette,
         typography = typography,
         shapes = shapes,
         content = content
