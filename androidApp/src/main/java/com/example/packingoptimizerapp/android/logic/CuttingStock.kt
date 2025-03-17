@@ -34,3 +34,7 @@ fun optimizeCutting(sheet: Sheet, pieces: List<CutPiece>): CuttingPlan {
 
     return CuttingPlan(pieces, cutLines.size)
 }
+
+fun randomColor(): Long {
+    return (0xFF000000..0xFFFFFFFF).random()
+}

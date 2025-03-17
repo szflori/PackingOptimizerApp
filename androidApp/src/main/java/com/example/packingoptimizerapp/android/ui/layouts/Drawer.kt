@@ -17,11 +17,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 @Composable
 fun Drawer(
     drawerState: DrawerState,
     navController: NavController,
+    scope: CoroutineScope,
     content: @Composable () -> Unit
 ) {
     ModalNavigationDrawer(
@@ -39,6 +42,7 @@ fun Drawer(
                         label = { Text("1D Vágás") },
                         selected = false,
                         onClick = {
+                            scope.launch { drawerState.close() }
                             navController.navigate("cutting_1d")
                         }
                         )

@@ -51,7 +51,6 @@ fun ContainerInputScreen() {
         if (isOptimized) {
             val width = sheetWidth.toIntOrNull() ?: 0
             val height = sheetHeight.toIntOrNull() ?: 0
-            CuttingVisualizer(Sheet(width, height), pieces)
         }
     }
 }

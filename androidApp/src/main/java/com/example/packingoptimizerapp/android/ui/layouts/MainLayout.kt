@@ -6,18 +6,18 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavController
 import kotlinx.coroutines.launch
 
 @Composable
 fun MainLayout(
+    navController: NavController,
     content: @Composable (PaddingValues) -> Unit
 ){
-    val navController = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
-    Drawer(drawerState = drawerState, navController = navController) {
+    Drawer(drawerState = drawerState, navController = navController, scope = scope) {
         Scaffold(topBar = { TopBar(title = "Optimalizálás", onMenuClick = {
             scope.launch {
                 if (drawerState.isClosed) {

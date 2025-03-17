@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
+import androidx.navigation.compose.rememberNavController
 import com.example.packingoptimizerapp.android.navigation.AppNavGraph
 import com.example.packingoptimizerapp.android.ui.layouts.Drawer
 import com.example.packingoptimizerapp.android.ui.layouts.MainLayout
@@ -17,9 +18,11 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MainLayout { innerPadding ->
+            val navController = rememberNavController()
+
+            MainLayout(navController) { innerPadding ->
                 Column(modifier = Modifier.padding(innerPadding)) {
-                    AppNavGraph()
+                    AppNavGraph(navController)
                 }
             }
         }
