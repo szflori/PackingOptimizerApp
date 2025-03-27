@@ -20,34 +20,53 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
-import androidx.compose.ui.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.packingoptimizerapp.android.logic.ColoredItem
-import com.example.packingoptimizerapp.android.logic.firstFitDecreasing
+import com.example.packingoptimizerapp.android.logic.Piece
+import com.example.packingoptimizerapp.android.logic.Sheet
+import com.example.packingoptimizerapp.android.logic.guillotineCut
 import com.example.packingoptimizerapp.android.ui.components.ColorPickerButton
 import com.example.packingoptimizerapp.android.ui.components.CustomNumberField
 
+data class LapItem(
+    var width: String,
+    var height: String,
+    var quantity: String,
+    var color: Color
+)
+
 @Composable
-fun Cutting1DScreen(navController: NavController) {
+fun Cutting2DScreen(navController: NavController) {
     var sheetWidth by remember { mutableStateOf("200") }
-    var lapList by remember { mutableStateOf(mutableListOf<Triple<String, String, Color>>()) }
+    var sheetHeight by remember { mutableStateOf("200") }
+    var lapList = remember { mutableStateListOf<LapItem>() }
 
     val isOptimizationEnabled by remember { derivedStateOf {
         // Készlet szélessége helyes szám (> 0)
         val widthValid = sheetWidth.toIntOrNull()?.let { it > 0 } == true
+        val heightValid = sheetHeight.toIntOrNull()?.let { it > 0 } == true
 
         // Legalább két lap, és minden lap érvényes számokat tartalmaz
         val validLapsCount = lapList.count { lap ->
-            val width = lap.first.toIntOrNull()
-            val quantity = lap.second.toIntOrNull()
+            val width = lap.width.toIntOrNull()
+            val height = lap.height.toIntOrNull()
+            val quantity = lap.quantity.toIntOrNull()
 
-            width != null && width > 0 && quantity != null && quantity > 0
+            width != null && width > 0 && height != null && height > 0 &&  quantity != null && quantity > 0
         }
-        widthValid && validLapsCount >= 2
+
+        widthValid && heightValid && validLapsCount >= 2
     } }
 
     Column(
@@ -56,8 +75,8 @@ fun Cutting1DScreen(navController: NavController) {
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-        Text("1D Vágás", style = MaterialTheme.typography.headlineSmall)
+    ) {
+        Text("2D Vágás", style = MaterialTheme.typography.headlineSmall)
 
         Column(
             modifier = Modifier.fillMaxWidth()
@@ -70,6 +89,13 @@ fun Cutting1DScreen(navController: NavController) {
                 onValueChange = {sheetWidth = it},
                 onClearClick = { sheetWidth = "" }
             )
+
+            CustomNumberField(
+                value = sheetHeight,
+                label = "Hosszúság (cm)",
+                onValueChange = {sheetHeight = it},
+                onClearClick = { sheetHeight = "" }
+            )
         }
 
         Column(
@@ -81,42 +107,51 @@ fun Cutting1DScreen(navController: NavController) {
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ){
-                itemsIndexed(lapList) { index, (width, quantity, color) ->
+                itemsIndexed(lapList) { index, lap ->
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         ColorPickerButton(
-                            selectedColor = color,
+                            selectedColor = lap.color,
                             onColorSelected = { newColor ->
-                                lapList = lapList.toMutableList().apply { this[index] = Triple(width, quantity, newColor) }
+                                    lapList[index] = lapList[index].copy(color = newColor)
                             }
                         )
 
                         OutlinedTextField(
-                            value = width,
+                            value = lap.width,
                             label = { Text("Szélesség (cm)") },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             onValueChange = { newValue ->
-                                lapList = lapList.toMutableList().apply { this[index] = Triple(newValue, quantity, color) }
+                                    lapList[index] = lapList[index].copy(width = newValue)
                             },
                             modifier = Modifier.weight(1f)
                         )
 
                         OutlinedTextField(
-                            value = quantity,
+                            value = lap.height,
+                            label = { Text("Hosszúság (cm)") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                            onValueChange = { newValue ->
+                                    lapList[index] = lapList[index].copy(height = newValue)
+                            },
+                            modifier = Modifier.weight(1f)
+                        )
+
+                        OutlinedTextField(
+                            value = lap.quantity,
                             label = { Text("Mennyiség") },
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                             onValueChange = { newValue ->
-                                lapList = lapList.toMutableList().apply { this[index] = Triple(width, newValue, color) }
+                                    lapList[index] = lapList[index].copy(quantity = newValue)
                             },
                             modifier = Modifier.weight(1f)
                         )
 
                         IconButton(onClick = {
-                            lapList = lapList.toMutableList()
-                                .apply { removeAt(index) } // Lap eltávolítása
+                            lapList.removeAt(index)
                         }) {
                             Icon(Icons.Filled.Delete, contentDescription = "Törlés")
                         }
@@ -125,7 +160,7 @@ fun Cutting1DScreen(navController: NavController) {
             }
 
             Button(
-                onClick = { lapList = lapList.toMutableList().apply { add(Triple("", "", Color.Gray)) } },
+                onClick = {  lapList.add(LapItem("", "", "", Color.Gray)) },
                 modifier = Modifier.padding(top = 8.dp)
             ) {
                 Icon(Icons.Filled.Add, contentDescription = "Hozzáadás")
@@ -136,22 +171,26 @@ fun Cutting1DScreen(navController: NavController) {
             Button(
                 onClick = {
                     val widthInt = sheetWidth.toIntOrNull() ?: return@Button
+                    val heightInt = sheetHeight.toIntOrNull() ?: return@Button
+
                     val itemList = lapList.flatMap { lap ->
-                        val width  = lap.first.toIntOrNull()
-                        val quantity  = lap.second.toIntOrNull()
-                        val colorLong = lap.third.value // <- Így konvertálunk Long-á
-                        if (width != null && quantity != null) {
-                            List(quantity) { ColoredItem(width, colorLong) }
+                        val width  = lap.width.toIntOrNull()
+                        val height  = lap.height.toIntOrNull()
+                        val quantity  = lap.quantity.toIntOrNull()
+                        val colorLong = lap.color.value // <- Így konvertálunk Long-á
+                        if (width != null && height != null && quantity != null) {
+                            List(quantity) { Piece(width, height, colorLong) }
                         } else emptyList()
-                    }
-                    val result = firstFitDecreasing(widthInt, itemList)
+                    }.toMutableList()
+
+                    val result = guillotineCut(Sheet(widthInt, heightInt), itemList)
 
                     navController.currentBackStackEntry?.savedStateHandle?.set(
-                        key = "cutting_result",
+                        key = "cutting_result_2d",
                         value = result
                     )
 
-                    navController.navigate("cutting_result")
+                    navController.navigate("cutting_result_2d")
                 },
                 enabled = isOptimizationEnabled,
                 modifier = Modifier.padding(top = 8.dp)

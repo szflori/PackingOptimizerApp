@@ -45,7 +45,15 @@ fun Drawer(
                             scope.launch { drawerState.close() }
                             navController.navigate("cutting_1d")
                         }
-                        )
+                    )
+                    NavigationDrawerItem(
+                        label = { Text("2D Vágás") },
+                        selected = false,
+                        onClick = {
+                            scope.launch { drawerState.close() }
+                            navController.navigate("cutting_2d")
+                        }
+                    )
                 }
             }
         }
