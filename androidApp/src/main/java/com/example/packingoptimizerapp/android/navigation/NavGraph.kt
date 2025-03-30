@@ -31,7 +31,7 @@ fun AppNavGraph(navController: NavHostController) {
         composable("cutting_result_2d") { backStackEntry ->
             val  result = navController.previousBackStackEntry
                 ?.savedStateHandle
-                ?.get<PlacedPiece>("cutting_result_2d")
+                ?.get<List<PlacedPiece>>("cutting_result_2d")
 
             result?.let { Cutting2DResultScreen(it, navController) }
         }

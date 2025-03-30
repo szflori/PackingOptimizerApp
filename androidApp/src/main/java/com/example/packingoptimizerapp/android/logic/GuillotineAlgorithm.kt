@@ -1,12 +1,18 @@
 package com.example.packingoptimizerapp.android.logic
 
+import android.os.Parcelable
 import androidx.compose.ui.graphics.Color
+import kotlinx.parcelize.Parcelize
 
 data class Sheet(val width: Int, val height: Int)
-data class Piece(val width: Int, val height: Int, val colorLong: ULong){
+
+@Parcelize
+data class Piece(val width: Int, val height: Int, val colorLong: ULong): Parcelable {
     val color: Color get() = Color(colorLong)
 }
-data class PlacedPiece(val piece: Piece, val x: Int, val y: Int, val rotated: Boolean)
+
+@Parcelize
+data class PlacedPiece(val piece: Piece, val x: Int, val y: Int, val rotated: Boolean) : Parcelable
 
 fun guillotineCut(sheet: Sheet, pieces: MutableList<Piece>): List<PlacedPiece> {
     val placedPieces = mutableListOf<PlacedPiece>()
