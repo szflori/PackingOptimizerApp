@@ -4,8 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.example.packingoptimizerapp.android.logic.Cutting2DResult
 import com.example.packingoptimizerapp.android.logic.CuttingResult
-import com.example.packingoptimizerapp.android.logic.PlacedPiece
 import com.example.packingoptimizerapp.android.ui.screens.Cutting1DScreen
 import com.example.packingoptimizerapp.android.ui.screens.Cutting2DResultScreen
 import com.example.packingoptimizerapp.android.ui.screens.Cutting2DScreen
@@ -31,7 +31,7 @@ fun AppNavGraph(navController: NavHostController) {
         composable("cutting_result_2d") { backStackEntry ->
             val  result = navController.previousBackStackEntry
                 ?.savedStateHandle
-                ?.get<List<PlacedPiece>>("cutting_result_2d")
+                ?.get<Cutting2DResult>("cutting_result_2d")
 
             result?.let { Cutting2DResultScreen(it, navController) }
         }

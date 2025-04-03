@@ -179,7 +179,7 @@ fun Cutting2DScreen(navController: NavController) {
                         val quantity  = lap.quantity.toIntOrNull()
                         val colorLong = lap.color.value // <- Így konvertálunk Long-á
                         if (width != null && height != null && quantity != null) {
-                            List(quantity) { Piece(width, height, colorLong) }
+                            List(quantity) { Piece(width, height, quantity, colorLong) }
                         } else emptyList()
                     }.toMutableList()
 

@@ -4,76 +4,122 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.packingoptimizerapp.android.logic.PlacedPiece
+import com.example.packingoptimizerapp.android.logic.Cutting2DResult
+import com.example.packingoptimizerapp.android.logic.SheetResult
 import kotlin.math.min
 
 @Composable
-fun Cutting2DResultScreen(result: List<PlacedPiece>, navController: NavController) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        Text("Vágási terv:", style = MaterialTheme.typography.headlineSmall)
-
-        Box(
+fun Cutting2DResultScreen(result: Cutting2DResult, navController: NavController) {
+        Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp)
-                .horizontalScroll(rememberScrollState())
                 .verticalScroll(rememberScrollState())
-                .background(Color(0xFFF8F8F8))
-        ){
-
-
-        Canvas(modifier = Modifier.size(1000.dp)) {
-            val maxWidth = result.maxOfOrNull { it.x + if (it.rotated) it.piece.height else it.piece.width } ?: 1
-            val maxHeight = result.maxOfOrNull { it.y + if (it.rotated) it.piece.width else it.piece.height } ?: 1
-
-            val scaleX = size.width / maxWidth
-            val scaleY = size.height / maxHeight
-            val scale = min(scaleX, scaleY)
-
-            result.forEach { placedPiece ->
-                val pieceWidth = (if (placedPiece.rotated) placedPiece.piece.height else placedPiece.piece.width) * scale
-                val pieceHeight = (if (placedPiece.rotated) placedPiece.piece.width else placedPiece.piece.height) * scale
-
-                drawRect(
-                    color = placedPiece.piece.color,
-                    topLeft = Offset(placedPiece.x * scale, placedPiece.y * scale),
-                    size = Size(pieceWidth, pieceHeight),
-                    style = Stroke(width = 2.dp.toPx())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+                Text(
+                    text = "Felhasznált készletek: ${result.sheets.size} db",
+                    style = MaterialTheme.typography.titleMedium
                 )
 
-                drawContext.canvas.nativeCanvas.drawText(
-                    "${placedPiece.piece.width}x${placedPiece.piece.height}",
-                    (placedPiece.x * scale + 8.dp.toPx()),
-                    (placedPiece.y * scale + 20.dp.toPx()),
-                    android.graphics.Paint().apply {
-                        color = android.graphics.Color.BLACK
-                        textSize = 12.sp.toPx()
+                result.sheets.forEach { sheetResult ->
+                    Text(
+                        "Készlet #${sheetResult.sheetNumber}: ${sheetResult.sheet.width} x ${sheetResult.sheet.height} cm",
+                        style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+                    )
+
+                    Box( modifier = Modifier
+                        .background(Color.White)
+                        .padding(8.dp)
+                        .align(Alignment.CenterHorizontally)){
+                        SheetCanvas(sheetResult)
                     }
-                )
-            }
+                    SheetInfo(sheetResult)
+
+                    Divider(modifier = Modifier.padding(vertical = 12.dp))
+                }
+        }
+}
+
+
+@Composable
+fun SheetCanvas(sheetResult: SheetResult) {
+    val canvasSizeDp = 300.dp
+
+    Canvas(
+        modifier = Modifier.size(canvasSizeDp)
+    ) {
+        val canvasWidth = size.width
+        val canvasHeight = size.height
+
+        // A scale arányosan lekicsinyíti a tartalmat a canvas méretéhez
+        val scaleX = canvasWidth / sheetResult.sheet.width
+        val scaleY = canvasHeight / sheetResult.sheet.height
+        val scale = min(scaleX, scaleY) // arányos, hogy minden beleférjen
+
+        drawRect(
+            color = Color.Black,
+            size = Size(sheetResult.sheet.width * scale, sheetResult.sheet.height * scale),
+            style = Stroke(width = 3.dp.toPx())
+        )
+
+        sheetResult.placedPieces.forEach { placedPiece ->
+            val pieceWidth =
+                (if (placedPiece.rotated) placedPiece.piece.height else placedPiece.piece.width) * scale
+            val pieceHeight =
+                (if (placedPiece.rotated) placedPiece.piece.width else placedPiece.piece.height) * scale
+
             drawRect(
-                color = Color.Black,
-                size = Size(maxWidth * scale, maxHeight * scale),
-                style = Stroke(width = 4.dp.toPx())
+                color = placedPiece.piece.color,
+                topLeft = Offset(placedPiece.x * scale, placedPiece.y * scale),
+                size = Size(pieceWidth, pieceHeight),
+                style = Stroke(width = 2.dp.toPx())
+            )
+
+            drawContext.canvas.nativeCanvas.drawText(
+                "${placedPiece.piece.width}x${placedPiece.piece.height}",
+                placedPiece.x * scale + 4.dp.toPx(),
+                placedPiece.y * scale + 16.dp.toPx(),
+                android.graphics.Paint().apply {
+                    color = android.graphics.Color.BLACK
+                    textSize = 10.sp.toPx()
+                }
             )
         }
-        }
     }
+}
+
+@Composable
+fun SheetInfo(sheetResult: SheetResult) {
+    Spacer(modifier = Modifier.height(8.dp))
+
+    Text(
+        "Kivágott lapok:",
+        style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
+    )
+
+    sheetResult.placedPieces
+        .groupingBy { "${it.piece.width} x ${it.piece.height} cm" }
+        .eachCount()
+        .forEach { (size, count) ->
+            Text(
+                text = "$size → $count db",
+                style = MaterialTheme.typography.bodyMedium
+            )
+        }
 }
